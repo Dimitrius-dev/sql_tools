@@ -32,6 +32,8 @@ void select(std::string config, std::list<One> &one, std::string command){
 			one.push_back(One(row[0].as<int>(), row[1].as<std::string>()));
 	    	}
 
+		connectionObject.disconnect();
+
 	}
 
     	catch (const std::exception& e)
@@ -48,6 +50,8 @@ void insert(std::string config, std::list<One> &one, std::string command){
 		pqxx::result response = worker.exec(command.c_str());
 
 		worker.commit();
+
+		connectionObject.disconnect();
 	}
 
     	catch (const std::exception& e)
@@ -85,15 +89,21 @@ int main()
 
 	std::list<One> one;
 
-	select(connectionString, one, "SELECT * FROM one");
+	while(true){
+		std::string name;
+		std::cin>>name;
 
-	show(one);
+		if(name == "show"){
+			select(connectionString, one, "SELECT * FROM one");
+			show(one);
+		}
+		else{
+			std::string buf = std::string("INSERT INTO one (name) VALUES" ) + "('" + name + "');";
+			insert(connectionString, one, buf);
+		}
+				
+	}
 
-	std::string buf = std::string("INSERT INTO one (name) VALUES" ) + "('Vlad');";
-
-	insert(connectionString, one, buf);
-
-	show(one);
 
 	return 0;
 }
